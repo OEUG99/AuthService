@@ -1,13 +1,13 @@
 import datetime
 import json
 import jwt
-from connectors.AuthDBConnection import AuthDBConnection
-from flask import Flask, request, jsonify, Response
-from models.User import User
-from repositories.UserRepository import UserRepository
+from flask import Flask, request, Response
+from src.connectors.AmazonSecretsManager import AmazonSecretsManager
+from src.connectors.AuthDBConnection import AuthDBConnection
+from src.models.User import User
+from src.repositories.UserRepository import UserRepository
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'super_secret_key1231231'
 
 
 @app.route('/api/v1/auth/register', methods=['POST'])
@@ -78,11 +78,20 @@ def login() -> Response:
         return Response(response="Invalid username or password",
                         status=status_code)
 
-    # Creating the JWT token and returning it in a 200 response
+    # Getting values ready to be embedded in the JWT token
     userID = user.id
     expiration_date = datetime.datetime.today() + datetime.timedelta(days=1)  # 1 day expiration
+
+    # Getting secret key from AWS
+    secret_name = "prod/authservice/jwt"
+    region = "us-east-1"
+    secret_key = AmazonSecretsManager(secret_name, region).get_secret("JWT_SECRET_KEY")
+
     token = jwt.encode({'user_id': userID, 'exp': expiration_date},
-                       app.config['SECRET_KEY'], algorithm="HS256")
+                       secret_key, algorithm="HS256")
+
+    # Deleting secret key from memory to avoid memory attacks, or leakage w/ overflows.
+    del secret_key
 
     return Response(response=json.dumps({'token': token}),
                     status=200)
@@ -103,9 +112,18 @@ def validate() -> Response:
     if not token:
         return Response(status=status_code)
 
+    # Getting secret key from AWS
+    secret_name = "prod/authservice/jwt"
+    region = "us-east-1"
+    secret_key = AmazonSecretsManager(secret_name, region).get_secret("JWT_SECRET_KEY")
+
     # Decoding the token, if it's valid, return a 200 response
     try:
-        jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+        jwt.decode(token, secret_key, algorithms=["HS256"])
+
+        # Deleting secret key from memory to avoid memory attacks, or leakage w/ overflows.
+        del secret_key
+
         status_code = 200
         return Response(status=status_code)
 
