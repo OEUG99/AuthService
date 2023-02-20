@@ -1,17 +1,16 @@
 from abc import ABC
-from libraries.FlaskRESTServiceLayer.connections import AbstractDatabaseConnection as db
+from FlaskRESTServiceLayer.AbstractDatabaseConnection import AbstractDatabaseConnection
 import mysql.connector
 
 
-class AuthDBConnection(db.AbstractDatabaseConnection, ABC):
-
+class AuthDBConnection(AbstractDatabaseConnection, ABC):
 
     def __init__(self):
         # Connect to the "auth" database
         conn = mysql.connector.connect(
-            host="host.docker.internal",
+            host="localhost",
             user="root",
-            password="101Quark101!"
+            password="password"
         )
 
         # initializing the DB

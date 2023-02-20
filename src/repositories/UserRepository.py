@@ -1,8 +1,7 @@
-from libraries.FlaskRESTServiceLayer.repositories import AbstractRepository as repo
+from FlaskRESTServiceLayer.AbstractRepoistory import AbstractRepository
 
 
-
-class UserRepository(repo.AbstractRepository):
+class UserRepository(AbstractRepository):
 
     def __init__(self, db):
         self.db = db
