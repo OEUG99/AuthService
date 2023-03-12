@@ -6,8 +6,30 @@ from src.connectors.AmazonSecretsManager import AmazonSecretsManager
 from src.connectors.AuthDBConnection import AuthDBConnection
 from src.models.User import User
 from src.repositories.UserRepository import UserRepository
+from flask_cors import CORS
 
+allowed_origins = ['http://localhost:3000']
 app = Flask(__name__)
+CORS(app, origins=allowed_origins)
+
+
+def generateToken(user):
+    # Getting values ready to be embedded in the JWT token
+    userID = user.id
+    expiration_date = datetime.datetime.today() + datetime.timedelta(days=1)  # 1 day expiration
+
+    # Getting secret key from AWS
+    secret_name = "prod/authservice/jwt"
+    region = "us-east-1"
+    secret_key = AmazonSecretsManager(secret_name, region).get_secret("JWT_SECRET_KEY")
+
+    token = jwt.encode({'user_id': userID, 'exp': expiration_date},
+                       secret_key, algorithm="HS256")
+
+    # Deleting secret key from memory to avoid memory attacks, or leakage w/ overflows.
+    del secret_key
+
+    return token
 
 
 @app.route('/api/v1/auth/register', methods=['POST'])
@@ -36,9 +58,10 @@ def register() -> Response:
     try:
         user = User(username, raw_password)
         UserRepository(AuthDBConnection()).add(user)
+        token = generateToken(user)
         status_code = 200
-        return Response(status=status_code)
-
+        return Response(response=json.dumps({'token': token}),
+                        status=status_code)
     except ValueError as e:
         return Response(response=str(e),
                         status=status_code)
@@ -78,23 +101,14 @@ def login() -> Response:
         return Response(response="Invalid username or password",
                         status=status_code)
 
-    # Getting values ready to be embedded in the JWT token
-    userID = user.id
-    expiration_date = datetime.datetime.today() + datetime.timedelta(days=1)  # 1 day expiration
-
-    # Getting secret key from AWS
-    secret_name = "prod/authservice/jwt"
-    region = "us-east-1"
-    secret_key = AmazonSecretsManager(secret_name, region).get_secret("JWT_SECRET_KEY")
-
-    token = jwt.encode({'user_id': userID, 'exp': expiration_date},
-                       secret_key, algorithm="HS256")
-
-    # Deleting secret key from memory to avoid memory attacks, or leakage w/ overflows.
-    del secret_key
-
-    return Response(response=json.dumps({'token': token}),
-                    status=200)
+    try:
+        token = generateToken(user)
+        status_code = 200
+        return Response(response=json.dumps({'token': token}),
+                        status=status_code)
+    except ValueError as e:
+        return Response(response=str(e),
+                        status=status_code)
 
 
 @app.route('/api/v1/auth/validate', methods=['POST'])

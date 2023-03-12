@@ -1,3 +1,4 @@
+import os
 from abc import ABC
 from FlaskRESTServiceLayer.AbstractDatabaseConnection import AbstractDatabaseConnection
 import mysql.connector
@@ -8,9 +9,10 @@ class AuthDBConnection(AbstractDatabaseConnection, ABC):
     def __init__(self):
         # Connect to the "auth" database
         conn = mysql.connector.connect(
-            host="localhost",
+            host="auth-mysql",
+            port=3306,
             user="root",
-            password="password"
+            password=str(os.getenv("MYSQL_ROOT_PASSWORD")),
         )
 
         # initializing the DB

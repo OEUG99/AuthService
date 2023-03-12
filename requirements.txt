@@ -6,3 +6,5 @@ mysql-connector-python~=8.0.32
 PyJWT~=2.6.0
 boto3~=1.26.74
 git+https://github.com/OEUG99/Python-Microservice-Dependencies.git@pre-release-8#egg=python-microservice-dependencies
+botocore~=1.29.74
+flask-cors~=3.0.10

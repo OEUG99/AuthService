@@ -1,9 +1,8 @@
 import os
-
 import boto3
 
 
-class AmazonKMSConnection():
+class AmazonKMSConnection:
     client = None
 
     def __init__(self):
