@@ -1,6 +1,6 @@
 import uuid
 import bcrypt
-from FlaskRESTServiceLayer.AbstractEntity import AbstractEntity
+from FlaskServicesDependencies.AbstractEntity import AbstractEntity
 import re
 
 

@@ -1,4 +1,4 @@
-from FlaskRESTServiceLayer.AbstractRepoistory import AbstractRepository
+from FlaskServicesDependencies.AbstractRepoistory import AbstractRepository
 
 
 class UserRepository(AbstractRepository):

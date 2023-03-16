@@ -1,5 +1,7 @@
 import datetime
 import json
+import os
+
 import jwt
 from flask import Flask, request, Response
 from src.connectors.AmazonSecretsManager import AmazonSecretsManager
@@ -7,9 +9,13 @@ from src.connectors.AuthDBConnection import AuthDBConnection
 from src.models.User import User
 from src.repositories.UserRepository import UserRepository
 from flask_cors import CORS
+from flask_redis import FlaskRedis
 
-allowed_origins = ['http://localhost:3000']
+allowed_origins = ['http://localhost:3000']  # todo change this to docker container
 app = Flask(__name__)
+redis_password = os.environ.get('REDIS_PASSWORD')
+app.config['REDIS_URL'] = f'redis://auth-redis:6379/0'
+redis_store = FlaskRedis(app)
 CORS(app, origins=allowed_origins)
 
 
@@ -21,7 +27,21 @@ def generateToken(user):
     # Getting secret key from AWS
     secret_name = "prod/authservice/jwt"
     region = "us-east-1"
-    secret_key = AmazonSecretsManager(secret_name, region).get_secret("JWT_SECRET_KEY")
+
+    secret_key = redis_store.get('JWT_SECRET_KEY') or None
+    if not secret_key:
+        aws_secret_access_key = os.environ.get('AWS_SECRET_ACCESS_KEY')
+        aws_session_token = os.environ.get('AWS_SESSION_TOKEN')
+        aws_access_key_id = os.environ.get('AWS_ACCESS_KEY_ID')
+        aws_secret_key_name = os.environ.get('AWS_SECRET_KEY_NAME')
+        secret_key = AmazonSecretsManager(secret_name,
+                                          region,
+                                          aws_secret_access_key,
+                                          aws_session_token,
+                                          aws_access_key_id,
+                                          aws_secret_key_name).get_secret("JWT_SECRET_KEY")
+
+        redis_store.set('JWT_SECRET_KEY', secret_key, ex=datetime.timedelta(days=1))
 
     token = jwt.encode({'user_id': userID, 'exp': expiration_date},
                        secret_key, algorithm="HS256")
@@ -133,13 +153,13 @@ def validate() -> Response:
 
     # Decoding the token, if it's valid, return a 200 response
     try:
-        jwt.decode(token, secret_key, algorithms=["HS256"])
+        tokenDecoded = jwt.decode(token, secret_key, algorithms=["HS256"])
 
         # Deleting secret key from memory to avoid memory attacks, or leakage w/ overflows.
         del secret_key
 
         status_code = 200
-        return Response(status=status_code)
+        return Response(response=json.dumps(tokenDecoded), status=status_code)
 
     except jwt.ExpiredSignatureError:
         return Response(response="Token expired",

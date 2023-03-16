@@ -1,6 +1,6 @@
 import os
 from abc import ABC
-from FlaskRESTServiceLayer.AbstractDatabaseConnection import AbstractDatabaseConnection
+from FlaskServicesDependencies.AbstractDatabaseConnection import AbstractDatabaseConnection
 import mysql.connector
 
 
@@ -39,4 +39,3 @@ class AuthDBConnection(AbstractDatabaseConnection, ABC):
         self.conn.commit()
         cur.close()
         return result
-
