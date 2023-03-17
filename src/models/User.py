@@ -6,7 +6,7 @@ import re
 
 class User(AbstractEntity):
     id = None
-    username = None
+    email = None
     raw_password = None
 
     def __init__(self, username, password, id=None):
@@ -15,7 +15,7 @@ class User(AbstractEntity):
             # if an id is provided, we can assume the password is hashed.
             # This is used when we are getting a user from the database.
             self.id = id
-            self.username = username
+            self.email = username
             self.password = password
             return
 
@@ -28,7 +28,7 @@ class User(AbstractEntity):
                              "character. It also can not be longer then 100 characters.")
 
         self.id = str(uuid.uuid4())
-        self.username = username
+        self.email = username
         self.password = self.__hashPassword(password)
 
     def validateUsername(self, username) -> bool:
@@ -65,4 +65,4 @@ class User(AbstractEntity):
         return password_hash.decode()  # returning hash with salt.
 
     def __repr__(self):
-        return '<User %r>' % self.username
+        return '<User %r>' % self.email

@@ -4,8 +4,9 @@ import os
 
 import jwt
 from flask import Flask, request, Response
-from src.connectors.AmazonSecretsManager import AmazonSecretsManager
-from src.connectors.AuthDBConnection import AuthDBConnection
+from FlaskServicesDependencies.DatabaseManager import DatabaseManager
+from FlaskServicesDependencies.MySQLStrategy import MySQLStrategy
+from FlaskServicesDependencies.AmazonSecretsManager import AmazonSecretsManager
 from src.models.User import User
 from src.repositories.UserRepository import UserRepository
 from flask_cors import CORS
@@ -52,6 +53,27 @@ def generateToken(user):
     return token
 
 
+def getDatabase():
+    """
+    Determines the database connection based off of env variables.
+    TODO: implement env variables for database connection.
+    :return:
+    :rtype:
+    """
+    strategy = MySQLStrategy(host="auth-mysql",
+                             port=3306,
+                             user="root",
+                             password=str(os.getenv("MYSQL_ROOT_PASSWORD")),
+                             database="auth")
+    try:
+        connection = DatabaseManager(strategy)
+        print("Database connected successfully")
+        return connection
+    except Exception as e:
+        print(f"Database connection failed: {e}")
+        return None
+
+
 @app.route('/api/v1/auth/register', methods=['POST'])
 def register() -> Response:
     """ The register endpoint is used to create a new user in the database.
@@ -69,15 +91,17 @@ def register() -> Response:
         print('Invalid username or password')
         return Response(status=status_code)
 
+    db = getDatabase()
+
     # Checking if the username is already taken
-    if UserRepository(AuthDBConnection()).get_by_username(username):
+    if UserRepository(db).get_by_username(username):
         return Response(response="Username already taken",
                         status=status_code)
 
     # Creating the user in the DB
     try:
         user = User(username, raw_password)
-        UserRepository(AuthDBConnection()).add(user)
+        UserRepository(db).add(user)
         token = generateToken(user)
         status_code = 200
         return Response(response=json.dumps({'token': token}),
@@ -104,8 +128,10 @@ def login() -> Response:
         print('Invalid username or password')
         return Response(status=status_code)
 
+    db = getDatabase()
+
     # Check if the user exists in the database
-    userTuple = UserRepository(AuthDBConnection()).get_by_username(username)
+    userTuple = UserRepository(db).get_by_username(username)
 
     if not userTuple:
         return Response(response="Invalid username or password",
@@ -117,7 +143,7 @@ def login() -> Response:
 
     # Check if the password is correct
     hashed_password = user.password
-    if not UserRepository(AuthDBConnection()).check_password(username, hashed_password):
+    if not UserRepository(db).check_password(username, hashed_password):
         return Response(response="Invalid username or password",
                         status=status_code)
 
@@ -149,7 +175,17 @@ def validate() -> Response:
     # Getting secret key from AWS
     secret_name = "prod/authservice/jwt"
     region = "us-east-1"
-    secret_key = AmazonSecretsManager(secret_name, region).get_secret("JWT_SECRET_KEY")
+    aws_secret_access_key = os.environ.get('AWS_SECRET_ACCESS_KEY')
+    aws_session_token = os.environ.get('AWS_SESSION_TOKEN')
+    aws_access_key_id = os.environ.get('AWS_ACCESS_KEY_ID')
+    aws_secret_key_name = os.environ.get('AWS_SECRET_KEY_NAME')
+
+    secret_key = AmazonSecretsManager(secret_name,
+                                      region,
+                                      aws_secret_access_key,
+                                      aws_session_token,
+                                      aws_access_key_id,
+                                      aws_secret_key_name).get_secret("JWT_SECRET_KEY")
 
     # Decoding the token, if it's valid, return a 200 response
     try:
