@@ -37,7 +37,8 @@ RUN chmod 777 install.sh
 RUN git config --global URL."https://$GIT_TOKEN:@github.com/".insteadOf "https://github.com/"
 
 # Run the installation script.
-RUN ./install.sh
+RUN aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+RUN aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
 
 # Install the Python dependencies.
 RUN pip install -r requirements.txt
