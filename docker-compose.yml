@@ -3,8 +3,6 @@ version: '3.1'
 services:
   app:
     container_name: auth
-    networks:
-      - auth-network
     build:
       context: .
       dockerfile: Dockerfile
@@ -19,17 +17,35 @@ services:
         - MYSQL_USER=$MYSQL_USER
         - MYSQL_PASSWORD=$MYSQL_PASSWORD
         - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
+        - SERVICE_IP=$SERVICE_IP
+        - SERVICE_PORT=$SERVICE_PORT
     ports:
       - "8001:8001"
     depends_on:
       - mysql
       - redis
 
+  consul:
+    image: consul:latest
+    container_name: consul
+    command: ["agent", "-dev", "-client", "0.0.0.0", "-ui", "-bind", "0.0.0.0"]
+    environment:
+      - 'CONSUL_BIND_INTERFACE=eth0'
+      - 'CONSUL_DATACENTER=my-dc'
+      - 'CONSUL_SERVER=false'
+      - 'CONSUL_CLIENT_ADDR=0.0.0.0'
+      - 'CONSUL_ENABLE_SCRIPT_CHECKS=true'
+      - 'CONSUL_RETRY_JOIN=10.0.0.12'
+      - 'CONSUL_CORS_ALLOWED_ORIGINS=http://localhost:*'
+    ports:
+      - "8500:8500"
+      - "8600:8600/tcp"
+      - "8600:8600/udp"
+      - "80:80"
+
   redis:
     container_name: auth-redis
     image: redis:latest
-    networks:
-      - auth-network
     ports:
       - "6379:6379"
     restart: always
@@ -37,8 +53,6 @@ services:
   mysql:
     container_name: auth-mysql
     image: mysql:latest
-    networks:
-      - auth-network
     volumes:
       - mysql_data:/var/lib/mysql
     restart: always
@@ -51,7 +65,3 @@ services:
       - "3306:3306"
 volumes:
   mysql_data:
-
-networks:
-  auth-network:
-    driver: bridge

@@ -1,7 +1,5 @@
 import datetime
-import json
 import os
-
 import jwt
 from flask import Flask, request, Response
 from FlaskServicesDependencies.DatabaseManager import DatabaseManager
@@ -11,6 +9,7 @@ from src.models.User import User
 from src.repositories.UserRepository import UserRepository
 from flask_cors import CORS
 from flask_redis import FlaskRedis
+import json
 
 allowed_origins = ['http://localhost:3000']  # todo change this to docker container
 app = Flask(__name__)
@@ -74,7 +73,17 @@ def getDatabase():
         return None
 
 
-@app.route('/api/v1/auth/register', methods=['POST'])
+@app.route('/health')
+def health() -> Response:
+    """The health endpoint is used to check the health of the service.
+
+    :return: HTTP Response
+    :rtype: Response
+    """
+    return Response(response="Healthy!", status=200)
+
+
+@app.route('/register', methods=['POST'])
 def register() -> Response:
     """ The register endpoint is used to create a new user in the database.
 
@@ -111,7 +120,7 @@ def register() -> Response:
                         status=status_code)
 
 
-@app.route('/api/v1/auth/login', methods=['POST'])
+@app.route('/login', methods=['POST'])
 def login() -> Response:
     """The login endpoint is used to authenticate a user and return a JWT token.
 
@@ -146,7 +155,6 @@ def login() -> Response:
     if not UserRepository(db).check_password(username, hashed_password):
         return Response(response="Invalid username or password",
                         status=status_code)
-
     try:
         token = generateToken(user)
         status_code = 200
@@ -157,7 +165,7 @@ def login() -> Response:
                         status=status_code)
 
 
-@app.route('/api/v1/auth/validate', methods=['POST'])
+@app.route('/validate', methods=['POST'])
 def validate() -> Response:
     """ The validate endpoint is used to validate a JWT token.
 
@@ -205,4 +213,5 @@ def validate() -> Response:
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8001)
+    servicePort = os.environ.get('SERVICE_PORT')
+    app.run(host='0.0.0.0', port=servicePort)
