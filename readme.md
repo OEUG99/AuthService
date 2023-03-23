@@ -16,6 +16,7 @@ In this repo we have the following:
 * * * This script communicates with consul to get a list of services and then generates a nginx configuration file that will proxy to those services.
 * * * It creates a nginx configuration file that will proxy to the user authentication service.
 * * * This script is similar to how consul templates work if you are familiar with them.
+* * * This allows nginx to act as an aggregation layer!
 * * * It is used by the `update_nginx_config.sh` script.
 * * `/scripts/update_nginx_config.sh`
 * * * This script will update the nginx configuration file and then reload nginx.
@@ -53,5 +54,6 @@ In this repo we have the following:
 * Docker
 * Docker Compose
 * Python 3.6
-* nginx
+* nginx 
 * aws cli & account for secret management (will be optional in future)
+* Access to the PyDataOpsKit repo (currently private but will be public once initial development is complete, contact me for early access)

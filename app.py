@@ -7,19 +7,23 @@ from FlaskServicesDependencies.MySQLStrategy import MySQLStrategy
 from FlaskServicesDependencies.AmazonSecretsManager import AmazonSecretsManager
 from src.models.User import User
 from src.repositories.UserRepository import UserRepository
-from flask_cors import CORS
 from flask_redis import FlaskRedis
 import json
 
-allowed_origins = ['http://localhost:3000']  # todo change this to docker container
 app = Flask(__name__)
 redis_password = os.environ.get('REDIS_PASSWORD')
 app.config['REDIS_URL'] = f'redis://auth-redis:6379/0'
 redis_store = FlaskRedis(app)
-CORS(app, origins=allowed_origins)
 
 
-def generateToken(user):
+def generateToken(user) -> str:
+    """Generates a JWT Token used for client authorization.
+
+    :param user:
+    :type user:
+    :return: encoded JWT token
+    :rtype:
+    """
     # Getting values ready to be embedded in the JWT token
     userID = user.id
     expiration_date = datetime.datetime.today() + datetime.timedelta(days=1)  # 1 day expiration
@@ -75,7 +79,7 @@ def getDatabase():
 
 @app.route('/health')
 def health() -> Response:
-    """The health endpoint is used to check the health of the service.
+    """The health endpoint is used to check the health of the service. This will be used by Consul.
 
     :return: HTTP Response
     :rtype: Response
