@@ -5,8 +5,8 @@ from flask import Flask, request, Response
 from FlaskServicesDependencies.DatabaseManager import DatabaseManager
 from FlaskServicesDependencies.MySQLStrategy import MySQLStrategy
 from FlaskServicesDependencies.AmazonSecretsManager import AmazonSecretsManager
-from src.models.User import User
-from src.repositories.UserRepository import UserRepository
+from models.User import User
+from repositories.UserRepository import UserRepository
 from flask_redis import FlaskRedis
 import json
 
@@ -219,3 +219,5 @@ def validate() -> Response:
 if __name__ == '__main__':
     servicePort = os.environ.get('SERVICE_PORT')
     app.run(host='0.0.0.0', port=servicePort)
+
+
