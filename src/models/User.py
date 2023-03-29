@@ -1,6 +1,6 @@
 import uuid
 import bcrypt
-from FlaskServicesDependencies.AbstractEntity import AbstractEntity
+from PyDataOpsKit.AbstractEntity import AbstractEntity
 import re
 
 

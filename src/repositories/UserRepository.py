@@ -1,4 +1,4 @@
-from FlaskServicesDependencies.AbstractRepoistory import AbstractRepository
+from PyDataOpsKit.AbstractRepoistory import AbstractRepository
 
 
 class UserRepository(AbstractRepository):

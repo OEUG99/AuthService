@@ -2,9 +2,9 @@ import datetime
 import os
 import jwt
 from flask import Flask, request, Response
-from FlaskServicesDependencies.DatabaseManager import DatabaseManager
-from FlaskServicesDependencies.MySQLStrategy import MySQLStrategy
-from FlaskServicesDependencies.AmazonSecretsManager import AmazonSecretsManager
+from PyDataOpsKit.DatabaseManager import DatabaseManager
+from PyDataOpsKit.MySQLStrategy import MySQLStrategy
+from PyDataOpsKit.AmazonSecretsManager import AmazonSecretsManager
 from models.User import User
 from repositories.UserRepository import UserRepository
 from flask_redis import FlaskRedis
