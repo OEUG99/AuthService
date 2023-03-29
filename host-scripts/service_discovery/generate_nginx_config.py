@@ -5,7 +5,7 @@ DOCKER_HOST_IP = "localhost"
 CONSUL_BASE_URL = f"http://{DOCKER_HOST_IP}:8500"
 CONSUL_LIST_SERVICES_URL = f"{CONSUL_BASE_URL}/v1/catalog/services"
 
-nginx_template = '''
+nginx_template = ('''
 events {
     worker_connections 1024;
 }
@@ -22,12 +22,12 @@ http {
     
     upstream consul {
         
-        server 127.0.0.1:8500;
+        server ''' + DOCKER_HOST_IP + (''':8500;
         
     }
     
     upstream react {
-        server 127.0.0.1:3000;
+        server ''' + DOCKER_HOST_IP + ''':3000;
     }
     {% endfor %}
 
@@ -53,7 +53,7 @@ http {
         
     }
 }
-'''
+'''))
 
 
 def get_all_services():

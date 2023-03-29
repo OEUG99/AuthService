@@ -1,12 +1,12 @@
 # consul to nginx service discovery
 This directory contains various scripts to help with service discovery in a consul cluster.
 
-## consul_to_nginx_service_discovery.py
+## generate_nginx_config.py
 This script will query consul for all services and then generate a nginx configuration file that will proxy to the services.
 
 ### Usage
 ```bash
-python consul_to_nginx_service_discovery.py
+python generate_nginx_config.py
 ```
 
 ## update_nginx_config.sh

@@ -51,4 +51,4 @@ EXPOSE $SERVICE_PORT
 
 # Start the application using Gunicorn.
 WORKDIR /app/src/
-CMD ["gunicorn", "-b", "0.0.0.0:${SERVICE_PORT}", "--workers", "4", "app:app"]
+CMD gunicorn -b 0.0.0.0:$SERVICE_PORT --workers 4 app:app
