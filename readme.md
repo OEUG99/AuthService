@@ -5,7 +5,7 @@ In this repo we have the following:
 * User Authentication Service:
 * * This service is responsible for all of the user authentication. It is a RESTful API that is used by the main service to authenticate users.
 * * It is written in Python using the Flask framework.
-* * It has hotswap-able database support at runtime thanks to using our [database abstraction layer](link to database abstraction layer).
+* * It has hotswap-able database support at runtime thanks to using our [database abstraction layer](https://en.wikipedia.org/wiki/Database_abstraction_layer).
 * Consul Service Discovery:
 * * This service has a container for consul that is used for service discovery.
 * Scripts for manging the service:
